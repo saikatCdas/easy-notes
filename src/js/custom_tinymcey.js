@@ -1,10 +1,4 @@
-const copyContentAdMarkdown = () => {
-    var { TurndownService } = require("turndown");
-    // Create a TurndownService instance
-    const turndownService = new TurndownService();
 
-    return turndownService.turndown(htmlContent);
-};
 
 const insertTable = function (editor, cols, rows) {
     insertTableHtml(editor, cols, rows);
@@ -20,6 +14,7 @@ const insertTableHtml = function (editor, cols, rows) {
     });
 };
 
+
 const createTableHtml = function (cols, rows) {
     let x, y, html;
     html =
@@ -28,7 +23,7 @@ const createTableHtml = function (cols, rows) {
     for (y = 0; y < rows; y++) {
         html += `<tr style='
             border: 1px solid black;
-            border - collapse: collapse;
+            border-collapse: collapse;
             padding: 8px;
             '>`;
         for (x = 0; x < cols; x++) {
@@ -52,6 +47,7 @@ const createTableHtml = function (cols, rows) {
     html += "</table>";
     return html;
 };
+
 const getInsertedElement = function (editor) {
     let elms = editor.dom.select("*[data-mce-id]");
     return elms[0];

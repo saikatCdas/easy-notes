@@ -5,7 +5,6 @@
 </template>
 <script>
 import WpEditor from './WpEditor.vue';
-import easyNotes from '../plugin_main_js_file'
 
 export default {
     name: 'AddNote',
@@ -20,7 +19,6 @@ export default {
     },
     methods: {
         handleEditorChange(val) {
-            console.log(val);
             this.editorContent = val;
             this.debounce(this.updatedNote, 600, val);
         },

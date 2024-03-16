@@ -5,19 +5,21 @@
         <textarea v-else-if="!hasWpEditor && !editorLoading" v-model="plain_content"
             class="wp_vue_editor wp_vue_editor_plain" @click="updateCursorPos"></textarea>
         <div id="easy-notes-table-actions">
-            <el-button text><i class="el-icon-plus"></i>Insert row above</el-button>
-            <el-button text><i class="el-icon-plus"></i>Insert row below</el-button>
-            <el-button text><i class="el-icon-plus"></i>Insert column above</el-button>
-            <el-button text><i class="el-icon-plus"></i>Insert column below</el-button>
+            <el-button @click="insertTableRow(0)" text><i class="el-icon-plus"></i>Insert row above</el-button>
+            <el-button @click="insertTableRow(1)" text><i class="el-icon-plus"></i>Insert row below</el-button>
+            <el-button @click="insertTableColumn(0)" text><i class="el-icon-plus"></i>Insert column left</el-button>
+            <el-button @click="insertTableColumn(1)" text><i class="el-icon-plus"></i>Insert column right</el-button>
             <hr>
-            <el-button type="danger" text><i class="el-icon-delete"></i>Delete row</el-button>
-            <el-button type="danger" text><i class="el-icon-delete"></i>Delete column</el-button>
-            <el-button type="danger" text><i class="el-icon-delete"></i>Delete table</el-button>
+            <el-button @click="deleteRow" type="danger" text><i class="el-icon-delete"></i>Delete row</el-button>
+            <el-button @click="deleteColumn" type="danger" text><i class="el-icon-delete"></i>Delete column</el-button>
+            <el-button @click="deleteTable" type="danger" text><i class="el-icon-delete"></i>Delete table</el-button>
         </div>
     </div>
 </template>
 <script>
 import insertTable from '../custom_tinymcey'
+import TurndownService from 'turndown';
+
 export default {
     name: 'WpEditor',
     emits: ["update:modelValue", "change"],
@@ -45,7 +47,11 @@ export default {
             plain_content: this.modelValue,
             cursorPos: this.modelValue ? this.modelValue.length : 0,
             editorLoading: true,
-            isTableOptionsOpen: false
+            isTableOptionsOpen: false,
+            targetTable: null,
+            targetRow: null,
+            currentEditor: null,
+            currentEvent: null,
         };
     },
     methods: {
@@ -61,12 +67,11 @@ export default {
                 mediaButtons: false,
                 tinymce: {
                     themes: 'inlite',
-                    // wpautop: true,
-                    // fontsize_formats: '8px 10px 12px 14px 16px 18px 24px 30px 36px 45px',
+                    wpautop: true,
+                    fontsize_formats: '8px 10px 12px 14px 16px 18px 24px 30px 36px 45px',
                     plugins: 'charmap compat3x colorpicker hr media paste tabfocus textcolor fullscreen wordpress image wpautoresize wpeditimage wpemoji wpgallery wplink wpdialogs wptextpattern wpview',
-                    toolbar1: 'formatselect fontselect fontsizeselect | customtable bold italic underline strikethrough hr | bullist numlist | blockquote wp_code | link unlink wp_add_media | forecolor backcolor | align outdent indent | charmap pastetext removeformat | undo redo | wp_help markdowncopy',
+                    toolbar1: 'formatselect fontselect fontsizeselect | customtable bold italic underline strikethrough hr | bullist numlist | blockquote wp_code | link unlink wp_add_media | forecolor backcolor | align outdent indent | charmap pastetext removeformat | undo redo | markdowncopy wp_help',
                     formats: {
-                        // Changes the alignment buttons to add a class to each of the matching selector elements
                         alignleft: {
                             selector: 'p,h1,h2,h3,h4,h5,h6,td,th,div,ul,ol,li,table,img',
                             classes: 'align-left',
@@ -86,7 +91,6 @@ export default {
                         }
                     },
 
-                    // height: that.plain_content ? 300 : that.height,
                     relative_urls: true,
                     remove_script_host: true,
                     convert_urls: true,
@@ -95,19 +99,17 @@ export default {
                     menubar: 'edit insert format table',
                     branding: true,
                     table: true,
-
-                    // Limit the preview styles in the menu/toolbar.
-                    // preview_styles: 'font-family font-size font-weight font-style text-decoration text-transform',
                     wp_keep_scroll_position: true,
                     setup(editor) {
+                        that.currentEditor = editor;
+                        window['saikat'] = editor;
                         editor.on("change", function (event) {
                             event.preventDefault();
                             that.changeContentEvent();
+                            that.hideTableOptions();
                         });
                         editor.on('click', function (event) {
-                            if (that.isTableOptionsOpen) {
-                                that.hideTableOptions()
-                            }
+                            that.hideTableOptions()
                         });
 
                         editor.on('contextmenu', function (event) {
@@ -129,7 +131,7 @@ export default {
                             icon: 'copy',
                             tooltip: 'Copy as markdown',
                             onclick: function (event) {
-                                console.log('object');;
+                                that.markdownAndCopy()
                             }
                         });
 
@@ -157,51 +159,139 @@ export default {
             this.cursorPos = cursorPos;
         },
         tableCustomize(event, editor) {
-            // table content update
-            const tableBody = event.target.closest('tbody');
+            // Prevent the default context menu from appearing
+            event.preventDefault();
+
+            // Get the target table and row from the event
+            const table = event.target.closest('table');
             const targetRow = event.target.closest('tr');
 
-            if (targetRow && tableBody.contains(targetRow)) {
+            if (targetRow && table.contains(targetRow)) {
+                // Show the options for adding rows or columns
                 const tableOptions = document.getElementById('easy-notes-table-actions');
                 this.isTableOptionsOpen = true;
-                tableOptions.style.left = event.clientX + 297 + 'px';
-                tableOptions.style.top = event.clientY + 181 + 'px';
+                tableOptions.style.left = event.clientX + 'px';
+                tableOptions.style.top = event.clientY + 'px';
                 tableOptions.style.display = 'block';
-
-                // Save the current cursor position
-                const selection = editor.selection.getRng();
-
-                // Create a new row and insert it after the clicked row
-                const newRow = tableBody.insertRow(targetRow.rowIndex + 1);
-
-                // Iterate through each cell in the clicked row and create corresponding cells in the new row
-                targetRow.querySelectorAll('td').forEach((cell) => {
-                    const newCell = newRow.insertCell();
-                    newCell.innerHTML = ''; // Optionally, copy content from the clicked cell
-                    // Clone the styles from the clicked cell
-                    newCell.style.cssText = cell.style.cssText;
-                });
-
-                // Update the TinyMCE editor's content
-                editor.setContent(editor.getContent());
-
-                // Restore the cursor position
-                editor.selection.setRng(selection);
-
-                // Set focus back to the editor
-                editor.focus();
-
-                // Set the cursor to the first cell of the new row
-                const cellElm = editor.dom.select('td', newRow)[0];
-                editor.selection.setCursorLocation(cellElm, 0);
+                this.targetTable = table;
+                this.targetRow = targetRow;
+                this.currentEvent = event;
             }
         },
         hideTableOptions() {
+            if (!this.isTableOptionsOpen) return;
             const tableOptions = document.getElementById('easy-notes-table-actions');
             tableOptions.style.display = 'none';
             this.isTableOptionsOpen = false;
-        }
+        },
+        markdownAndCopy(text) {
+            const content = this.editor.getContent(this.editor_id);
+            const turndownService = new TurndownService();
 
+            // Customize Turndown to handle HTML tables
+            turndownService.addRule('table', {
+                filter: 'table',
+                replacement: function (content, node) {
+                    const rows = Array.from(node.querySelectorAll('tr'));
+                    let markdownTable = '';
+
+                    // Construct the header row
+                    const headerRow = rows.shift(); // Remove the header row from the rows array
+                    const headerCells = Array.from(headerRow.children);
+                    const headerRowContent = headerCells.map(cell => cell.textContent.trim()).join(' | ');
+                    markdownTable += `| ${headerRowContent} |\n`;
+
+                    // Construct the separator row
+                    const separatorRow = headerCells.map(() => '---').join(' | ');
+                    markdownTable += `| ${separatorRow} |\n`;
+
+                    // Construct the rest of the rows
+                    rows.forEach(row => {
+                        const cells = Array.from(row.children);
+                        const rowContent = cells.map(cell => cell.textContent.trim()).join(' | ');
+                        markdownTable += `| ${rowContent} |\n`;
+                    });
+
+                    return markdownTable;
+                }
+            });
+
+            // Convert HTML content to Markdown
+            const markdownText = turndownService.turndown(content);
+            console.log(markdownText);
+
+
+            // Create a temporary textarea element
+            const textarea = document.createElement('textarea');
+            textarea.value = markdownText;
+
+            // Make the textarea out of the viewport to ensure it's not visible
+            textarea.style.position = 'fixed';
+            textarea.style.left = '-999999px';
+
+            document.body.appendChild(textarea);
+
+            // Select and copy the text inside the textarea
+            textarea.select();
+            document.execCommand('copy');
+
+            // Remove the textarea from the DOM
+            document.body.removeChild(textarea);
+        },
+        insertTableRow(direction) {
+            // direction = 0 add to the above  
+            // direction = 1 add to the below
+            const newRow = this.targetTable.insertRow(this.targetRow.rowIndex + parseInt(direction));
+            // Clone the cells from the clicked row
+            this.targetRow.querySelectorAll('td').forEach((cell) => {
+                const newCell = newRow.insertCell();
+                newCell.innerHTML = ''; // Optionally, copy content from the clicked cell
+                // Clone the styles from the clicked cell
+                newCell.style.cssText = cell.style.cssText;
+            });
+            this.updateEditor();
+        },
+        insertTableColumn(direction) {
+            // direction = 0 add to the left  
+            // direction = 1 add to the right
+            const cellIndex = this.currentEvent.target.cellIndex; // Get the index of the clicked cell
+            this.targetTable.querySelectorAll('tr').forEach((row) => {
+                const newCell = row.insertCell(cellIndex + parseInt(direction)); // Insert cell at the next index
+                newCell.innerHTML = ''; 
+                // Clone the styles from the clicked cell
+                newCell.style.cssText = this.currentEvent.target.style.cssText;
+            })
+            this.updateEditor();
+        },
+        deleteColumn() {
+            console.log('object');
+            const targetCell = this.currentEvent.target.closest('td');
+            if (targetCell && this.targetTable.contains(targetCell)) {
+                const columnIndex = targetCell.cellIndex; // Get the index of the clicked cell's column
+
+                // Remove the corresponding cell in each row
+                this.targetTable.querySelectorAll('tr').forEach((row) => {
+                    row.deleteCell(columnIndex); // Delete the cell at the specified column index
+                });
+                this.updateEditor();
+            }
+        },
+        deleteRow() {
+            this.targetTable.deleteRow(this.targetRow.rowIndex);
+            this.updateEditor();
+        },
+        deleteTable() {
+            this.targetTable.remove(); 
+            this.updateEditor();
+        },
+
+        updateEditor() {
+            const selection = this.currentEditor.selection.getRng();
+            this.currentEditor.setContent(this.currentEditor.getContent());
+            this.currentEditor.selection.setRng(selection);
+            this.currentEditor.focus();
+            this.hideTableOptions();
+        },
     },
     mounted() {
         setTimeout(() => {
@@ -280,17 +370,18 @@ export default {
     border-radius: 4px;
     width: 300px;
     display: none;
-    // transform: translate(177%, 51%);
+    transform: translate(207%, 49%);
 
     .el-button {
         background: none;
         border: none;
         box-shadow: none;
         outline: none;
-        margin: 0 ;
+        margin: 0;
         width: 100%;
         padding: 14px;
         color: #606266;
+
         &:hover,
         &:active,
         &:focus {
@@ -299,11 +390,13 @@ export default {
             box-shadow: none;
             outline: none;
         }
-        > span {
+
+        >span {
             display: flex;
             gap: 6px;
         }
     }
+
     .el-button--danger {
         &:hover {
             color: red;
