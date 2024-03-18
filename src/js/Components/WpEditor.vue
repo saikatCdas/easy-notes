@@ -115,6 +115,7 @@ export default {
                         editor.on('contextmenu', function (event) {
                             event.preventDefault();
                             that.tableCustomize(event, editor)
+                            // editor.setContent(editor.getContent());
                         })
 
                         editor.addButton('customtable', {
@@ -173,8 +174,8 @@ export default {
                 tableOptions.style.left = event.clientX + 'px';
                 tableOptions.style.top = event.clientY + 'px';
                 tableOptions.style.display = 'block';
-                this.targetTable = table;
-                this.targetRow = targetRow;
+                // this.targetTable = table;
+                // this.targetRow = targetRow;
                 this.currentEvent = event;
             }
         },
@@ -183,6 +184,7 @@ export default {
             const tableOptions = document.getElementById('easy-notes-table-actions');
             tableOptions.style.display = 'none';
             this.isTableOptionsOpen = false;
+            this.currentEvent = null;
         },
         markdownAndCopy(text) {
             const content = this.editor.getContent(this.editor_id);
@@ -241,9 +243,11 @@ export default {
         insertTableRow(direction) {
             // direction = 0 add to the above  
             // direction = 1 add to the below
-            const newRow = this.targetTable.insertRow(this.targetRow.rowIndex + parseInt(direction));
+            const table = this.currentEvent.target.closest('table');
+            const targetRow = this.currentEvent.target.closest('tr');
+            const newRow = table.insertRow(targetRow.rowIndex + parseInt(direction));
             // Clone the cells from the clicked row
-            this.targetRow.querySelectorAll('td').forEach((cell) => {
+            targetRow.querySelectorAll('td').forEach((cell) => {
                 const newCell = newRow.insertCell();
                 newCell.innerHTML = ''; // Optionally, copy content from the clicked cell
                 // Clone the styles from the clicked cell
@@ -286,10 +290,11 @@ export default {
         },
 
         updateEditor() {
-            const selection = this.currentEditor.selection.getRng();
-            this.currentEditor.setContent(this.currentEditor.getContent());
-            this.currentEditor.selection.setRng(selection);
-            this.currentEditor.focus();
+            let currentEditor = window.tinymce.editors[this.editor_id];
+            const selection = currentEditor.selection.getRng();
+            currentEditor.setContent(currentEditor.getContent());
+            currentEditor.selection.setRng(selection);
+            currentEditor.focus();
             this.hideTableOptions();
         },
     },
