@@ -78,9 +78,13 @@ export default {
                 })
         },
         updatedNote(val) {
-            let options = {}
-            options['route'] = 'update_note'
-            options['data'] = val;
+            let options = {
+                'route': 'update_note',
+                'data': {
+                    title: this.note.title,
+                    'description': val
+                }
+            }
             this.$adminPost(options)
                 .then((res) => {
                     console.log(res);
