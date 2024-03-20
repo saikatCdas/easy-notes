@@ -48,8 +48,6 @@ export default {
             cursorPos: this.modelValue ? this.modelValue.length : 0,
             editorLoading: true,
             isTableOptionsOpen: false,
-            targetTable: null,
-            targetRow: null,
             currentEditor: null,
             currentEvent: null,
         };
@@ -114,8 +112,17 @@ export default {
 
                         editor.on('contextmenu', function (event) {
                             event.preventDefault();
-                            that.tableCustomize(event, editor)
-                            // editor.setContent(editor.getContent());
+
+                            that.tableCustomize(event);
+                            // const table = event.target.closest('table');
+                            // const targetRow = event.target.closest('tr');
+                            // const newRow = table.insertRow(targetRow.rowIndex);
+                            // targetRow.querySelectorAll('td').forEach((cell) => {
+                            //     const newCell = newRow.insertCell();
+                            //     newCell.innerHTML = '';
+                            //     newCell.style.cssText = cell.style.cssText;
+                            // });
+                            // that.updateEditor()
                         })
 
                         editor.addButton('customtable', {
@@ -159,7 +166,7 @@ export default {
                 jQuery(".wp_vue_editor_plain").prop("selectionStart");
             this.cursorPos = cursorPos;
         },
-        tableCustomize(event, editor) {
+        tableCustomize(event) {
             // Prevent the default context menu from appearing
             event.preventDefault();
 
@@ -168,14 +175,14 @@ export default {
             const targetRow = event.target.closest('tr');
 
             if (targetRow && table.contains(targetRow)) {
-                // Show the options for adding rows or columns
+                // get the mouse position
+                const iframeElement = document.getElementById(this.editor_id + '_ifr');
+                const iframeBoundingRect = iframeElement.getBoundingClientRect();
                 const tableOptions = document.getElementById('easy-notes-table-actions');
                 this.isTableOptionsOpen = true;
-                tableOptions.style.left = event.clientX + 'px';
-                tableOptions.style.top = event.clientY + 'px';
+                tableOptions.style.left = iframeBoundingRect.left + event.clientX + 'px';
+                tableOptions.style.top = iframeBoundingRect.top + event.clientY + 'px';
                 tableOptions.style.display = 'block';
-                // this.targetTable = table;
-                // this.targetRow = targetRow;
                 this.currentEvent = event;
             }
         },
@@ -258,8 +265,9 @@ export default {
         insertTableColumn(direction) {
             // direction = 0 add to the left  
             // direction = 1 add to the right
+            const table = this.currentEvent.target.closest('table');
             const cellIndex = this.currentEvent.target.cellIndex; // Get the index of the clicked cell
-            this.targetTable.querySelectorAll('tr').forEach((row) => {
+            table.querySelectorAll('tr').forEach((row) => {
                 const newCell = row.insertCell(cellIndex + parseInt(direction)); // Insert cell at the next index
                 newCell.innerHTML = ''; 
                 // Clone the styles from the clicked cell
@@ -268,24 +276,27 @@ export default {
             this.updateEditor();
         },
         deleteColumn() {
-            console.log('object');
+            const table = this.currentEvent.target.closest('table');
             const targetCell = this.currentEvent.target.closest('td');
-            if (targetCell && this.targetTable.contains(targetCell)) {
+            if (targetCell && table.contains(targetCell)) {
                 const columnIndex = targetCell.cellIndex; // Get the index of the clicked cell's column
 
                 // Remove the corresponding cell in each row
-                this.targetTable.querySelectorAll('tr').forEach((row) => {
+                table.querySelectorAll('tr').forEach((row) => {
                     row.deleteCell(columnIndex); // Delete the cell at the specified column index
                 });
                 this.updateEditor();
             }
         },
         deleteRow() {
-            this.targetTable.deleteRow(this.targetRow.rowIndex);
+            const table = this.currentEvent.target.closest('table');
+            const targetRow = this.currentEvent.target.closest('tr');
+            table.deleteRow(targetRow.rowIndex);
             this.updateEditor();
         },
         deleteTable() {
-            this.targetTable.remove(); 
+            const table = this.currentEvent.target.closest('table');
+            table.remove(); 
             this.updateEditor();
         },
 
@@ -375,7 +386,7 @@ export default {
     border-radius: 4px;
     width: 300px;
     display: none;
-    transform: translate(207%, 49%);
+    // transform: translate(207%, 49%);
 
     .el-button {
         background: none;
