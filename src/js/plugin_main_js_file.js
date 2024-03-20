@@ -24,6 +24,7 @@ export default class easyNotes {
 
 	$adminGet(options) {
 		options.action = 'easy-notes_admin_ajax';
+		options.nonce = window.easyNotesAdmin.nonce;
 		return window.jQuery.get(window.easyNotesAdmin.ajaxurl, options);
 	}
 

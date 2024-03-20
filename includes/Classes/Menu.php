@@ -41,7 +41,7 @@ class Menu
             'admin.php?page=easy-notes#/',
         );
         $submenu['easy-notes']['settings'] = array(
-            __('Add Notes', 'textdomain'),
+            __('Creates', 'textdomain'),
             $menuPermission,
             'admin.php?page=easy-notes#/create',
         );
@@ -63,16 +63,16 @@ class Menu
             'title'  => __('Notes', 'textdomain'),
             'href'   => 'admin.php?page=easy-notes#/',
             'meta'   => array(
-                'title' => __('Add Notes', 'textdomain'),
+                'title' => __('Creates', 'textdomain'),
             ),
         ));
         $admin_bar->add_menu(array(
             'id'     => 'wp_admin_bar_easy_notes_create',
             'parent' => 'wp_admin_bar_easy_notes',
-            'title'  => __('Add Notes', 'textdomain'),
+            'title'  => __('Creates', 'textdomain'),
             'href'   => 'admin.php?page=easy-notes#/create',
             'meta'   => array(
-                'title' =>__('Add Notes', 'textdomain'),
+                'title' =>__('Creates', 'textdomain'),
             ),
         ));
 
