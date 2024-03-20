@@ -80493,6 +80493,7 @@ var easyNotes = /*#__PURE__*/function () {
     key: "$adminGet",
     value: function $adminGet(options) {
       options.action = 'easy-notes_admin_ajax';
+      options.nonce = window.easyNotesAdmin.nonce;
       return window.jQuery.get(window.easyNotesAdmin.ajaxurl, options);
     }
   }, {
@@ -80504,6 +80505,7 @@ var easyNotes = /*#__PURE__*/function () {
     key: "$adminPost",
     value: function $adminPost(options) {
       options.action = 'easy-notes_admin_ajax';
+      options.nonce = window.easyNotesAdmin.nonce;
       return window.jQuery.post(window.easyNotesAdmin.ajaxurl, options);
     }
   }, {

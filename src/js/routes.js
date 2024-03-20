@@ -14,8 +14,12 @@ export const routes = [
         component: Note,
     },
     {
-        path: "/note/",
+        path: "/note/:id",
         name: "note",
         component: Note,
+        props: (route) => ({
+            id: parseInt(route.params.id),
+            name: route.query.name,
+        }),
     },
 ];

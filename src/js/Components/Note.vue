@@ -41,15 +41,25 @@ export default {
             this.debounce(this.updatedNote, 600, val);
         },
         createNote() {
-            let options = {}
-            options['route'] = 'create_note'
-            options['title'] = 'Untitled note';
+            let options = {
+                route: 'create_note',
+                title: 'Untitled note'
+            };
+
             this.$adminPost(options)
                 .then((res) => {
-                    this.$router.replace({ path: '/note/', query: { id: res.data.id, name: res.data.title.replace(' ', '-') } });
+                    // Ensure the response contains the expected data
+                    if (res.data && res.data.id && res.data.title) {
+                        const noteId = res.data.id;
+                        const noteTitle = res.data.title.replace(' ', '-');
+                        // Navigate to the newly created note
+                        this.$router.replace({ path: `/note/${noteId}`, query: { name: noteTitle } });
+                    } else {
+                        console.error('Invalid response data:', res.data);
+                    }
                 })
                 .catch((error) => {
-                    console.log(error);
+                    console.error('Error creating note:', error);
                 });
         },
 
@@ -57,7 +67,7 @@ export default {
             console.log(this.$route);
             let options = {}
             options['route'] = 'get_note';
-            options['note_id'] = this.$route.query.id
+            options['note_id'] = this.$route.params.id
             this.$adminGet(options)
                 .then((res) => {
                     this.note = res.data
@@ -93,8 +103,9 @@ export default {
     },
     watch: {
         $route(to, from) {
-            console.log('to', to);
-            console.log('from', from);
+            if (to.name == 'create') {
+                this.createNote()
+            }
             if (to.name == 'note') {
                 this.getNote()
             }
