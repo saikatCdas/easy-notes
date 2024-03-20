@@ -105,7 +105,8 @@ class Menu
         $easyNotesAdminVars = apply_filters('easy-notes/admin_app_vars', array(
             //'image_upload_url' => admin_url('admin-ajax.php?action=wpf_global_settings_handler&route=wpf_upload_image'),
             'assets_url' => EASYNOTES_URL . 'assets/',
-            'ajaxurl' => admin_url('admin-ajax.php')
+            'ajaxurl' => admin_url('admin-ajax.php'),
+            'nonce' => wp_create_nonce('easy-notes'),
         ));
 
         wp_localize_script('easy-notes_boot', 'easyNotesAdmin', $easyNotesAdminVars);
@@ -120,4 +121,5 @@ class Menu
         class="wp-menu-image dashicons-before dashicons-media-document" 
         style="display: flex; gap: 4px; align-items: center;height: 31px;">' .  __('Easy Notes', 'textdomain') . '</div>';
     }
+
 }

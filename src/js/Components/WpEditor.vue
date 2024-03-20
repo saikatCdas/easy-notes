@@ -104,10 +104,10 @@ export default {
                         editor.on("change", function (event) {
                             event.preventDefault();
                             that.changeContentEvent();
-                            that.hideTableOptions();
+                            // that.hideTableOptions();
                         });
                         editor.on('click', function (event) {
-                            that.hideTableOptions()
+                            // that.hideTableOptions()
                         });
 
                         editor.on('contextmenu', function (event) {
@@ -248,6 +248,7 @@ export default {
             document.body.removeChild(textarea);
         },
         insertTableRow(direction) {
+            console.log('Hello world hoi');
             // direction = 0 add to the above  
             // direction = 1 add to the below
             const table = this.currentEvent.target.closest('table');

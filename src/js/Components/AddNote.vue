@@ -24,11 +24,11 @@ export default {
         },
 
         updatedNote(val) {
-            return
             let option = {}
-            option['action'] = 'update-note';
+            option['action'] = 'easy-notes_admin_ajax';
+            option['route'] = 'update_note'
             option['data'] = val;
-            this.$post(option)
+            this.$adminPost(option)
                 .then((res) => {
                     console.log(res);
                 })
