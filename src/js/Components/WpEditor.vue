@@ -66,9 +66,10 @@ export default {
                 tinymce: {
                     themes: 'inlite',
                     wpautop: true,
+                    themes: 'inlite',
                     fontsize_formats: '8px 10px 12px 14px 16px 18px 24px 30px 36px 45px',
-                    plugins: 'charmap lists compat3x colorpicker hr media paste tabfocus textcolor fullscreen wordpress image wpautoresize wpeditimage wpemoji wpgallery wplink wpdialogs wptextpattern wpview',
-                    toolbar1: 'formatselect fontselect fontsizeselect | customtable wp_add_media | bold italic underline forecolor backcolor | blockquote wp_code | link unlink | align bullist numlist outdent indent | charmap pastetext removeformat | undo redo | markdowncopy wp_help',
+                    plugins: 'charmap colorpicker compat3x directionality hr lists media paste tabfocus textcolor wordpress image wpautoresize wpeditimage wpemoji wpgallery wplink wpdialogs wptextpattern wpview',
+                    toolbar1: 'formatselect fontselect fontsizeselect | customtable wp_add_media | bold italic underline forecolor backcolor | blockquote wp_code | link wp_link_remove wp_link_advanced | align bullist numlist outdent indent | charmap pastetext removeformat | undo redo | markdowncopy wp_help',
                     formats: {
                         alignleft: {
                             selector: 'p,h1,h2,h3,h4,h5,h6,td,th,div,ul,ol,li,table,img',
@@ -88,31 +89,23 @@ export default {
                             attributes: { align: 'right' }
                         }
                     },
-
-                    relative_urls: true,
-                    remove_script_host: true,
-                    convert_urls: true,
-                    entity_encoding: 'raw',
                     keep_styles: true,
-                    menubar: 'edit insert format table',
-                    branding: true,
-                    table: true,
-                    wp_keep_scroll_position: true,
+                    menubar: 'edit insert format',
                     setup(editor) {
                         that.currentEditor = editor;
-                        editor.on("change", function (event) {
-                            event.preventDefault();
-                            that.changeContentEvent();
-                        });
                         editor.on('click', function (event) {
+                            console.log('event', event);
                             that.hideTableOptions()
                         });
 
                         editor.on('contextmenu', function (event) {
                             event.preventDefault();
-
                             that.tableCustomize(event);
                         })
+                        editor.on("change", function (event) {
+                            event.preventDefault();
+                            that.changeContentEvent();
+                        });
 
                         editor.addButton('customtable', {
                             classes: 'easy-notes-add-custom-table',
