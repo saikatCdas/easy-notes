@@ -68,7 +68,7 @@ export default {
                     wpautop: true,
                     fontsize_formats: '8px 10px 12px 14px 16px 18px 24px 30px 36px 45px',
                     plugins: 'charmap lists compat3x colorpicker hr media paste tabfocus textcolor fullscreen wordpress image wpautoresize wpeditimage wpemoji wpgallery wplink wpdialogs wptextpattern wpview',
-                    toolbar1: 'formatselect fontselect fontsizeselect | customtable bold italic underline strikethrough hr | bullist numlist | blockquote wp_code | link unlink wp_add_media | forecolor backcolor | align outdent indent | charmap pastetext removeformat | undo redo | markdowncopy wp_help',
+                    toolbar1: 'formatselect fontselect fontsizeselect | customtable wp_add_media | bold italic underline forecolor backcolor | blockquote wp_code | link unlink | align bullist numlist outdent indent | charmap pastetext removeformat | undo redo | markdowncopy wp_help',
                     formats: {
                         alignleft: {
                             selector: 'p,h1,h2,h3,h4,h5,h6,td,th,div,ul,ol,li,table,img',
@@ -100,11 +100,9 @@ export default {
                     wp_keep_scroll_position: true,
                     setup(editor) {
                         that.currentEditor = editor;
-                        window['saikat'] = editor;
                         editor.on("change", function (event) {
                             event.preventDefault();
                             that.changeContentEvent();
-                            that.hideTableOptions();
                         });
                         editor.on('click', function (event) {
                             that.hideTableOptions()
@@ -121,7 +119,6 @@ export default {
                             icon: 'table',
                             tooltip: 'Insert table',
                             onclick: function (event) {
-                                // console.log(editor.dom.select);
                                 insertTable(editor, 4, 3);
                             }
                         });
@@ -220,7 +217,6 @@ export default {
 
             // Convert HTML content to Markdown
             const markdownText = turndownService.turndown(content);
-            console.log(markdownText);
 
 
             // Create a temporary textarea element
@@ -241,7 +237,6 @@ export default {
             document.body.removeChild(textarea);
         },
         insertTableRow(direction) {
-            console.log('Hello world hoi');
             // direction = 0 add to the above  
             // direction = 1 add to the below
             const table = this.currentEvent.target.closest('table');
@@ -314,7 +309,6 @@ export default {
 
 <style lang="scss">
 .easy-notes-editor {
-    position: relative;
 
     .wp-editor-wrap {
         .wp-editor-tools {
