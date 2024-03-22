@@ -67,7 +67,7 @@ export default {
                     themes: 'inlite',
                     wpautop: true,
                     fontsize_formats: '8px 10px 12px 14px 16px 18px 24px 30px 36px 45px',
-                    plugins: 'charmap compat3x colorpicker hr media paste tabfocus textcolor fullscreen wordpress image wpautoresize wpeditimage wpemoji wpgallery wplink wpdialogs wptextpattern wpview',
+                    plugins: 'charmap lists compat3x colorpicker hr media paste tabfocus textcolor fullscreen wordpress image wpautoresize wpeditimage wpemoji wpgallery wplink wpdialogs wptextpattern wpview',
                     toolbar1: 'formatselect fontselect fontsizeselect | customtable bold italic underline strikethrough hr | bullist numlist | blockquote wp_code | link unlink wp_add_media | forecolor backcolor | align outdent indent | charmap pastetext removeformat | undo redo | markdowncopy wp_help',
                     formats: {
                         alignleft: {
@@ -104,25 +104,16 @@ export default {
                         editor.on("change", function (event) {
                             event.preventDefault();
                             that.changeContentEvent();
-                            // that.hideTableOptions();
+                            that.hideTableOptions();
                         });
                         editor.on('click', function (event) {
-                            // that.hideTableOptions()
+                            that.hideTableOptions()
                         });
 
                         editor.on('contextmenu', function (event) {
                             event.preventDefault();
 
                             that.tableCustomize(event);
-                            // const table = event.target.closest('table');
-                            // const targetRow = event.target.closest('tr');
-                            // const newRow = table.insertRow(targetRow.rowIndex);
-                            // targetRow.querySelectorAll('td').forEach((cell) => {
-                            //     const newCell = newRow.insertCell();
-                            //     newCell.innerHTML = '';
-                            //     newCell.style.cssText = cell.style.cssText;
-                            // });
-                            // that.updateEditor()
                         })
 
                         editor.addButton('customtable', {
@@ -183,6 +174,7 @@ export default {
                 tableOptions.style.left = iframeBoundingRect.left + event.clientX + 'px';
                 tableOptions.style.top = iframeBoundingRect.top + event.clientY + 'px';
                 tableOptions.style.display = 'block';
+                tableOptions.style.position = "fixed"
                 this.currentEvent = event;
             }
         },
@@ -190,6 +182,7 @@ export default {
             if (!this.isTableOptionsOpen) return;
             const tableOptions = document.getElementById('easy-notes-table-actions');
             tableOptions.style.display = 'none';
+            tableOptions.style.position = "static"
             this.isTableOptionsOpen = false;
             this.currentEvent = null;
         },
@@ -381,13 +374,11 @@ export default {
 
 #easy-notes-table-actions {
     z-index: 100;
-    position: fixed;
     background-color: #fff;
     border: 1px solid #ccc;
     border-radius: 4px;
     width: 300px;
     display: none;
-    // transform: translate(207%, 49%);
 
     .el-button {
         background: none;
